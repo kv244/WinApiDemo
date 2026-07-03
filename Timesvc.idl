@@ -1,0 +1,14 @@
+// Timesvc.idl - RPC interface for a local "time service".
+// Compile with MIDL:  midl Timesvc.idl
+// Produces: Timesvc.h, Timesvc_c.c (client stub), Timesvc_s.c (server stub).
+
+[
+    uuid(7d3b9f2a-4c81-4e6d-9a1f-2b8c6e0d5a34),
+    version(1.0),
+    pointer_default(unique)
+]
+interface Timesvc
+{
+    // Fills szTime with "HH:MM:SS" (local time). Returns 0 on success.
+    long GetLocalTimeString([out, string] wchar_t szTime[64]);
+}

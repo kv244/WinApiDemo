@@ -1,0 +1,11 @@
+// Timesvc.acf - attribute config for Timesvc.idl.
+// Use an *implicit* binding handle so the client and server share identical
+// function signatures: the client sets the global handle 'Timesvc_Binding'
+// before calling, and neither side passes a handle argument explicitly.
+
+[
+    implicit_handle(handle_t Timesvc_Binding)
+]
+interface Timesvc
+{
+}
