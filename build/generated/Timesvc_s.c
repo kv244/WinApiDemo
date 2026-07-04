@@ -6,8 +6,8 @@
  /* File created by MIDL compiler version 8.01.0628 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for Timesvc.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0628 
+/* Compiler settings for C:/Users/julia/source/repos/WinApiDemo/Timesvc.idl:
+    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0628 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -16,7 +16,7 @@
 */
 /* @@MIDL_FILE_HEADING(  ) */
 
-#if !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_)
+#if defined(_M_AMD64)
 
 
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
@@ -27,15 +27,12 @@
 #pragma warning( disable: 4211 )  /* redefine extern to static */
 #pragma warning( disable: 4232 )  /* dllimport identity*/
 #pragma warning( disable: 4024 )  /* array to pointer mapping*/
-#pragma warning( disable: 4100 ) /* unreferenced arguments in x86 call */
-
-#pragma optimize("", off ) 
 
 #include <string.h>
 #include "Timesvc.h"
 
 #define TYPE_FORMAT_STRING_SIZE   7                                 
-#define PROC_FORMAT_STRING_SIZE   37                                
+#define PROC_FORMAT_STRING_SIZE   39                                
 #define EXPR_FORMAT_STRING_SIZE   1                                 
 #define TRANSMIT_AS_TABLE_SIZE    0            
 #define WIRE_MARSHAL_TABLE_SIZE   0            
@@ -151,17 +148,9 @@ extern const MIDL_STUB_DESC Timesvc_StubDesc;
 #endif
 
 
-#if !defined(__RPC_WIN32__)
+#if !defined(__RPC_WIN64__)
 #error  Invalid build platform for this stub.
 #endif
-
-#if !(TARGET_IS_NT50_OR_LATER)
-#error You need Windows 2000 or later to run this stub because it uses these features:
-#error   /robust command line switch.
-#error However, your C/C++ compilation flags indicate you intend to run this app on earlier systems.
-#error This app will fail with the RPC_X_WRONG_STUB_VERSION error.
-#endif
-
 
 static const Timesvc_MIDL_PROC_FORMAT_STRING Timesvc__MIDL_ProcFormatString =
     {
@@ -174,28 +163,29 @@ static const Timesvc_MIDL_PROC_FORMAT_STRING Timesvc__MIDL_ProcFormatString =
 			0x48,		/* Old Flags:  */
 /*  2 */	NdrFcLong( 0x0 ),	/* 0 */
 /*  6 */	NdrFcShort( 0x0 ),	/* 0 */
-/*  8 */	NdrFcShort( 0x8 ),	/* x86 Stack size/offset = 8 */
+/*  8 */	NdrFcShort( 0x10 ),	/* X64 Stack size/offset = 16 */
 /* 10 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 12 */	NdrFcShort( 0x8 ),	/* 8 */
 /* 14 */	0x45,		/* Oi2 Flags:  srv must size, has return, has ext, */
 			0x2,		/* 2 */
-/* 16 */	0x8,		/* 8 */
+/* 16 */	0xa,		/* 10 */
 			0x1,		/* Ext Flags:  new corr desc, */
 /* 18 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 20 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 22 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 24 */	NdrFcShort( 0x0 ),	/* 0 */
 
 	/* Parameter szTime */
 
-/* 24 */	NdrFcShort( 0x13 ),	/* Flags:  must size, must free, out, */
-/* 26 */	NdrFcShort( 0x0 ),	/* x86 Stack size/offset = 0 */
-/* 28 */	NdrFcShort( 0x2 ),	/* Type Offset=2 */
+/* 26 */	NdrFcShort( 0x13 ),	/* Flags:  must size, must free, out, */
+/* 28 */	NdrFcShort( 0x0 ),	/* X64 Stack size/offset = 0 */
+/* 30 */	NdrFcShort( 0x2 ),	/* Type Offset=2 */
 
 	/* Return value */
 
-/* 30 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
-/* 32 */	NdrFcShort( 0x4 ),	/* x86 Stack size/offset = 4 */
-/* 34 */	0x8,		/* FC_LONG */
+/* 32 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
+/* 34 */	NdrFcShort( 0x8 ),	/* X64 Stack size/offset = 8 */
+/* 36 */	0x8,		/* FC_LONG */
 			0x0,		/* 0 */
 
 			0x0
@@ -283,5 +273,5 @@ static const MIDL_SERVER_INFO Timesvc_ServerInfo =
 #endif
 
 
-#endif /* !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_) */
+#endif /* defined(_M_AMD64)*/
 

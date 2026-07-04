@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\julia\source\repos\WinApiDemo\build\CMakeFiles\11d5b0c2a6ec6144f2957acb292bf4f3\Timesvc.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\julia\source\repos\WinApiDemo\build\CMakeFiles\a625f18fbee5572ece4a1d4686a83ef5\rpc_stubs.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\julia\source\repos\WinApiDemo\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\julia\source\repos\WinApiDemo\build\CMakeFiles\rpc_stubs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{8ED816CF-1989-3C95-A159-2609CEE1B0BC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

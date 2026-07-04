@@ -1,13 +1,13 @@
 
 
-/* this ALWAYS GENERATED file contains the RPC server stubs */
+/* this ALWAYS GENERATED file contains the RPC client stubs */
 
 
  /* File created by MIDL compiler version 8.01.0628 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for Timesvc.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0628 
+/* Compiler settings for C:/Users/julia/source/repos/WinApiDemo/Timesvc.idl:
+    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0628 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -16,7 +16,7 @@
 */
 /* @@MIDL_FILE_HEADING(  ) */
 
-#if !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_)
+#if defined(_M_AMD64)
 
 
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
@@ -27,15 +27,13 @@
 #pragma warning( disable: 4211 )  /* redefine extern to static */
 #pragma warning( disable: 4232 )  /* dllimport identity*/
 #pragma warning( disable: 4024 )  /* array to pointer mapping*/
-#pragma warning( disable: 4100 ) /* unreferenced arguments in x86 call */
-
-#pragma optimize("", off ) 
 
 #include <string.h>
+
 #include "Timesvc.h"
 
 #define TYPE_FORMAT_STRING_SIZE   7                                 
-#define PROC_FORMAT_STRING_SIZE   37                                
+#define PROC_FORMAT_STRING_SIZE   39                                
 #define EXPR_FORMAT_STRING_SIZE   1                                 
 #define TRANSMIT_AS_TABLE_SIZE    0            
 #define WIRE_MARSHAL_TABLE_SIZE   0            
@@ -116,31 +114,33 @@ ObjectType ## _unbind((ObjectType) pObject, ServerHandle);\
 #define XFG_TRAMPOLINE_FPTR_DEPENDENT_SYMBOL(Symbol) Symbol
 #endif
 
+
 extern const Timesvc_MIDL_TYPE_FORMAT_STRING Timesvc__MIDL_TypeFormatString;
 extern const Timesvc_MIDL_PROC_FORMAT_STRING Timesvc__MIDL_ProcFormatString;
 extern const Timesvc_MIDL_EXPR_FORMAT_STRING Timesvc__MIDL_ExprFormatString;
 
+#define GENERIC_BINDING_TABLE_SIZE   0            
+
+
 /* Standard interface: Timesvc, ver. 1.0,
    GUID={0x7d3b9f2a,0x4c81,0x4e6d,{0x9a,0x1f,0x2b,0x8c,0x6e,0x0d,0x5a,0x34}} */
 
+handle_t Timesvc_Binding;
 
-extern const MIDL_SERVER_INFO Timesvc_ServerInfo;
 
-extern const RPC_DISPATCH_TABLE Timesvc_v1_0_DispatchTable;
-
-static const RPC_SERVER_INTERFACE Timesvc___RpcServerInterface =
+static const RPC_CLIENT_INTERFACE Timesvc___RpcClientInterface =
     {
-    sizeof(RPC_SERVER_INTERFACE),
+    sizeof(RPC_CLIENT_INTERFACE),
     {{0x7d3b9f2a,0x4c81,0x4e6d,{0x9a,0x1f,0x2b,0x8c,0x6e,0x0d,0x5a,0x34}},{1,0}},
     {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
-    (RPC_DISPATCH_TABLE*)&Timesvc_v1_0_DispatchTable,
     0,
     0,
     0,
-    &Timesvc_ServerInfo,
-    0x04000000
+    0,
+    0,
+    0x00000000
     };
-RPC_IF_HANDLE Timesvc_v1_0_s_ifspec = (RPC_IF_HANDLE)& Timesvc___RpcServerInterface;
+RPC_IF_HANDLE Timesvc_v1_0_c_ifspec = (RPC_IF_HANDLE)& Timesvc___RpcClientInterface;
 #ifdef __cplusplus
 namespace {
 #endif
@@ -150,18 +150,27 @@ extern const MIDL_STUB_DESC Timesvc_StubDesc;
 }
 #endif
 
+static RPC_BINDING_HANDLE Timesvc__MIDL_AutoBindHandle;
 
-#if !defined(__RPC_WIN32__)
+
+long GetLocalTimeString( 
+    /* [string][out] */ wchar_t szTime[ 64 ])
+{
+
+    CLIENT_CALL_RETURN _RetVal;
+
+    _RetVal = NdrClientCall2(
+                  ( PMIDL_STUB_DESC  )&Timesvc_StubDesc,
+                  (PFORMAT_STRING) &Timesvc__MIDL_ProcFormatString.Format[0],
+                  szTime);
+    return ( long  )_RetVal.Simple;
+    
+}
+
+
+#if !defined(__RPC_WIN64__)
 #error  Invalid build platform for this stub.
 #endif
-
-#if !(TARGET_IS_NT50_OR_LATER)
-#error You need Windows 2000 or later to run this stub because it uses these features:
-#error   /robust command line switch.
-#error However, your C/C++ compilation flags indicate you intend to run this app on earlier systems.
-#error This app will fail with the RPC_X_WRONG_STUB_VERSION error.
-#endif
-
 
 static const Timesvc_MIDL_PROC_FORMAT_STRING Timesvc__MIDL_ProcFormatString =
     {
@@ -174,28 +183,29 @@ static const Timesvc_MIDL_PROC_FORMAT_STRING Timesvc__MIDL_ProcFormatString =
 			0x48,		/* Old Flags:  */
 /*  2 */	NdrFcLong( 0x0 ),	/* 0 */
 /*  6 */	NdrFcShort( 0x0 ),	/* 0 */
-/*  8 */	NdrFcShort( 0x8 ),	/* x86 Stack size/offset = 8 */
+/*  8 */	NdrFcShort( 0x10 ),	/* X64 Stack size/offset = 16 */
 /* 10 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 12 */	NdrFcShort( 0x8 ),	/* 8 */
 /* 14 */	0x45,		/* Oi2 Flags:  srv must size, has return, has ext, */
 			0x2,		/* 2 */
-/* 16 */	0x8,		/* 8 */
+/* 16 */	0xa,		/* 10 */
 			0x1,		/* Ext Flags:  new corr desc, */
 /* 18 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 20 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 22 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 24 */	NdrFcShort( 0x0 ),	/* 0 */
 
 	/* Parameter szTime */
 
-/* 24 */	NdrFcShort( 0x13 ),	/* Flags:  must size, must free, out, */
-/* 26 */	NdrFcShort( 0x0 ),	/* x86 Stack size/offset = 0 */
-/* 28 */	NdrFcShort( 0x2 ),	/* Type Offset=2 */
+/* 26 */	NdrFcShort( 0x13 ),	/* Flags:  must size, must free, out, */
+/* 28 */	NdrFcShort( 0x0 ),	/* X64 Stack size/offset = 0 */
+/* 30 */	NdrFcShort( 0x2 ),	/* Type Offset=2 */
 
 	/* Return value */
 
-/* 30 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
-/* 32 */	NdrFcShort( 0x4 ),	/* x86 Stack size/offset = 4 */
-/* 34 */	0x8,		/* FC_LONG */
+/* 32 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
+/* 34 */	NdrFcShort( 0x8 ),	/* X64 Stack size/offset = 8 */
+/* 36 */	0x8,		/* FC_LONG */
 			0x0,		/* 0 */
 
 			0x0
@@ -227,10 +237,10 @@ namespace {
 #endif
 static const MIDL_STUB_DESC Timesvc_StubDesc = 
     {
-    (void *)& Timesvc___RpcServerInterface,
+    (void *)& Timesvc___RpcClientInterface,
     MIDL_user_allocate,
     MIDL_user_free,
-    0,
+    &Timesvc_Binding,
     0,
     0,
     0,
@@ -251,37 +261,10 @@ static const MIDL_STUB_DESC Timesvc_StubDesc =
 #ifdef __cplusplus
 }
 #endif
-
-static const RPC_DISPATCH_FUNCTION Timesvc_table[] =
-    {
-    NdrServerCall2,
-    0
-    };
-static const RPC_DISPATCH_TABLE Timesvc_v1_0_DispatchTable = 
-    {
-    1,
-    (RPC_DISPATCH_FUNCTION*)Timesvc_table
-    };
-
-static const SERVER_ROUTINE Timesvc_ServerRoutineTable[] = 
-    {
-    (SERVER_ROUTINE)GetLocalTimeString
-    };
-
-static const MIDL_SERVER_INFO Timesvc_ServerInfo = 
-    {
-    &Timesvc_StubDesc,
-    Timesvc_ServerRoutineTable,
-    Timesvc__MIDL_ProcFormatString.Format,
-    Timesvc_FormatStringOffsetTable,
-    0,
-    0,
-    0,
-    0};
 #if _MSC_VER >= 1200
 #pragma warning(pop)
 #endif
 
 
-#endif /* !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_) */
+#endif /* defined(_M_AMD64)*/
 

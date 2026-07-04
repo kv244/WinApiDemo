@@ -1,0 +1,5 @@
+C:/Users/julia/source/repos/WinApiDemo/build/CMakeFiles/rpc_stubs.dir
+C:/Users/julia/source/repos/WinApiDemo/build/CMakeFiles/TimeServer.dir
+C:/Users/julia/source/repos/WinApiDemo/build/CMakeFiles/WinApiDemo.dir
+C:/Users/julia/source/repos/WinApiDemo/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/julia/source/repos/WinApiDemo/build/CMakeFiles/ZERO_CHECK.dir

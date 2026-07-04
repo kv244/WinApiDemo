@@ -21,6 +21,7 @@
 // bare command-line cl build does not -- so pin them to the source.
 #pragma comment(lib, "user32.lib")   // window, menu, clipboard, messages, timers
 #pragma comment(lib, "gdi32.lib")    // brushes, pens, BitBlt, metafile, text
+#pragma comment(lib, "Msimg32.lib")  // TransparentBlt
 
 // --- Optional RPC time client -------------------------------------------
 // Lights up only when the MIDL-generated stub is present, so the project
@@ -70,6 +71,12 @@ static HDC     g_memDC   = nullptr;   // off-screen DC
 static HBITMAP g_backBmp = nullptr;   // its bitmap
 static HBITMAP g_oldBmp  = nullptr;   // DC's original bitmap (restore before delete)
 static int     g_bbW = 0, g_bbH = 0;  // back-buffer size
+static bool    g_inSizeMove = false;  // (Improvement 4) track resize drags
+
+// ---- Sprite bitmap --------------------------------------------------
+static HDC     g_spriteDC = nullptr;
+static HBITMAP g_spriteBmp = nullptr;
+static HBITMAP g_oldSpriteBmp = nullptr;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -154,15 +161,13 @@ static void DrawScene(HDC dc, int w, int h)
     TextOutW(dc, 10, 8, hint, lstrlenW(hint));
 
     // Time from the RPC server, right-aligned in the top-right corner.
-    SIZE tsz;
-    GetTextExtentPoint32W(dc, g_time, lstrlenW(g_time), &tsz);
-    TextOutW(dc, w - tsz.cx - 10, 8, g_time, lstrlenW(g_time));
+    // (Improvement 3: Let GDI handle right-alignment natively)
+    UINT oldAlign = SetTextAlign(dc, TA_RIGHT | TA_TOP);
+    TextOutW(dc, w - 10, 8, g_time, lstrlenW(g_time));
+    SetTextAlign(dc, oldAlign);
 
-    HBRUSH oldB2 = (HBRUSH)SelectObject(dc, g_fillBrush);
-    HPEN   oldP2 = (HPEN)SelectObject(dc, g_edgePen);
-    Ellipse(dc, (int)g_x, (int)g_y, (int)g_x + SPRITE, (int)g_y + SPRITE);
-    SelectObject(dc, oldB2);
-    SelectObject(dc, oldP2);
+    // Draw the bitmap sprite using a transparent color key (Magenta)
+    TransparentBlt(dc, (int)g_x, (int)g_y, SPRITE, SPRITE, g_spriteDC, 0, 0, SPRITE, SPRITE, RGB(255, 0, 255));
 }
 
 // Record the current scene into a *placeable* WMF and write it to disk.
@@ -211,9 +216,8 @@ static bool SaveSceneAsWmf(const wchar_t* path, int w, int h)
     return true;
 }
 
-// Copy the current canvas to the clipboard as a bitmap (no DDE -- this is the
-// standard Clipboard API). We hand the clipboard a *fresh* bitmap: ownership
-// transfers to the system, so it must not be one we keep reusing or delete.
+// Copy the current canvas to the clipboard as a DIB (Device-Independent Bitmap).
+// (Improvement 2: CF_DIB is much more reliable across apps than CF_BITMAP).
 static bool CopyCanvasToClipboard(HWND hWnd)
 {
     if (!g_memDC || g_bbW < 1 || g_bbH < 1) return false;
@@ -226,19 +230,45 @@ static bool CopyCanvasToClipboard(HWND hWnd)
     HBITMAP copy = CreateCompatibleBitmap(wdc, g_bbW, g_bbH);
     HBITMAP oldc = (HBITMAP)SelectObject(cdc, copy);
     BitBlt(cdc, 0, 0, g_bbW, g_bbH, g_memDC, 0, 0, SRCCOPY);
-    SelectObject(cdc, oldc);          // deselect before handing off the bitmap
+    SelectObject(cdc, oldc);          // deselect before extracting bits
+
+    // Prepare BITMAPINFO for a 32-bpp bottom-up DIB
+    BITMAPINFO bmi = { 0 };
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = g_bbW;
+    bmi.bmiHeader.biHeight = g_bbH;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    // First call to fill in biSizeImage
+    GetDIBits(wdc, copy, 0, g_bbH, nullptr, &bmi, DIB_RGB_COLORS);
+    if (bmi.bmiHeader.biSizeImage == 0)
+        bmi.bmiHeader.biSizeImage = g_bbW * 4 * g_bbH;
+
+    // Allocate movable global memory for the clipboard
+    HANDLE hMem = GlobalAlloc(GMEM_MOVEABLE, sizeof(BITMAPINFOHEADER) + bmi.bmiHeader.biSizeImage);
+    if (hMem) {
+        BITMAPINFO* pBmi = (BITMAPINFO*)GlobalLock(hMem);
+        *pBmi = bmi;
+        // Second call to actually get the pixels
+        GetDIBits(wdc, copy, 0, g_bbH, (BYTE*)pBmi + sizeof(BITMAPINFOHEADER), pBmi, DIB_RGB_COLORS);
+        GlobalUnlock(hMem);
+    }
+
     DeleteDC(cdc);
     ReleaseDC(hWnd, wdc);
+    DeleteObject(copy); // We are transferring hMem to the clipboard, not the HBITMAP
 
     bool ok = false;
-    if (OpenClipboard(hWnd)) {
+    if (hMem && OpenClipboard(hWnd)) {
         EmptyClipboard();
-        // On success the clipboard OWNS 'copy' -- do not delete it.
-        if (SetClipboardData(CF_BITMAP, copy)) ok = true;
-        else DeleteObject(copy);      // hand-off failed: we still own it
+        // On success the clipboard OWNS 'hMem' -- do not free it.
+        if (SetClipboardData(CF_DIB, hMem)) ok = true;
+        else GlobalFree(hMem);      // hand-off failed: we still own it
         CloseClipboard();
-    } else {
-        DeleteObject(copy);           // couldn't open clipboard: clean up
+    } else if (hMem) {
+        GlobalFree(hMem);           // couldn't open clipboard: clean up
     }
     return ok;
 }
@@ -345,6 +375,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UpdateTimeViaRpc();                          // first reading immediately
     SetTimer(hWnd, IDT_CLOCK, 1000, nullptr);    // then refresh once a second
 
+    // (Improvement 1: Setup QPC for a proper game loop timer)
+    LARGE_INTEGER freq, lastTime;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&lastTime);
+
     // ---- Game loop -----------------------------------------------------
     MSG msg = { 0 };
     for (;;) {
@@ -354,6 +389,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+
+        // (Improvement 1: Use delta time to measure frame intervals without blocking the pump)
+        LARGE_INTEGER currentTime;
+        QueryPerformanceCounter(&currentTime);
+        double dt = (double)(currentTime.QuadPart - lastTime.QuadPart) / freq.QuadPart;
+
+        const double frameTime = 1.0 / 60.0;
+        if (dt < frameTime) {
+            DWORD waitTime = (DWORD)((frameTime - dt) * 1000.0);
+            if (waitTime > 0) {
+                // Sleep remaining time, but wake immediately if a window message arrives
+                MsgWaitForMultipleObjects(0, nullptr, FALSE, waitTime, QS_ALLINPUT);
+            }
+            continue; 
+        }
+
+        // If the window was dragged or paused, clamp delta time so we don't jump too far
+        if (dt > 0.1) dt = frameTime;
+        lastTime = currentTime;
+
+        // Apply a time scale since SPEED was originally tuned for exactly 16.6ms frames
+        double timeScale = dt / frameTime;
 
         // Build a direction vector from held keys, then normalize it so any
         // direction (cardinal or diagonal) moves exactly SPEED px/frame.
@@ -365,8 +422,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         double len = sqrt(dx * dx + dy * dy);
         if (len > 0.0) {
-            g_x += dx / len * SPEED;
-            g_y += dy / len * SPEED;
+            g_x += dx / len * SPEED * timeScale;
+            g_y += dy / len * SPEED * timeScale;
         }
 
         RECT rc;
@@ -409,7 +466,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         InvalidateRect(hWnd, nullptr, FALSE);
         UpdateWindow(hWnd);
-        Sleep(16);   // ~60 fps
     }
 done:
     return (int)msg.wParam;
@@ -419,17 +475,58 @@ done:
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-    case WM_CREATE:
+    case WM_CREATE: {
         // Allocate GDI objects once for the window's lifetime.
         g_skyBrush    = CreateSolidBrush(RGB(0, 190, 230));
         g_groundBrush = CreateSolidBrush(RGB(235, 205, 70));
         g_fillBrush   = CreateSolidBrush(RGB(220, 40, 80));
         g_ridgePen    = CreatePen(PS_SOLID, 2, RGB(110, 80, 30));
         g_edgePen     = CreatePen(PS_SOLID, 2, RGB(255, 240, 240));
+
+        // Create the bitmap sprite (diamond shape)
+        HDC wdc = GetDC(hWnd);
+        g_spriteDC = CreateCompatibleDC(wdc);
+        g_spriteBmp = CreateCompatibleBitmap(wdc, SPRITE, SPRITE);
+        g_oldSpriteBmp = (HBITMAP)SelectObject(g_spriteDC, g_spriteBmp);
+        ReleaseDC(hWnd, wdc);
+
+        // Fill background with magenta (used as transparent color key)
+        RECT rc = { 0, 0, SPRITE, SPRITE };
+        HBRUSH magBrush = CreateSolidBrush(RGB(255, 0, 255));
+        FillRect(g_spriteDC, &rc, magBrush);
+        DeleteObject(magBrush);
+
+        // Draw the diamond
+        HBRUSH oldB = (HBRUSH)SelectObject(g_spriteDC, g_fillBrush);
+        HPEN oldP = (HPEN)SelectObject(g_spriteDC, g_edgePen);
+        POINT pts[4] = { {SPRITE/2, 1}, {SPRITE-2, SPRITE/2}, {SPRITE/2, SPRITE-2}, {1, SPRITE/2} };
+        Polygon(g_spriteDC, pts, 4);
+        SelectObject(g_spriteDC, oldB);
+        SelectObject(g_spriteDC, oldP);
+        return 0;
+    }
+
+    case WM_ENTERSIZEMOVE:
+        // (Improvement 4: Pause heavy resizing operations during drag)
+        g_inSizeMove = true;
+        return 0;
+
+    case WM_EXITSIZEMOVE:
+        // (Improvement 4: Rebuild the buffer to the final size once drag finishes)
+        g_inSizeMove = false;
+        {
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+            RebuildBackBuffer(hWnd, rc.right, rc.bottom);
+            InvalidateRect(hWnd, nullptr, FALSE);
+        }
         return 0;
 
     case WM_SIZE:
-        RebuildBackBuffer(hWnd, LOWORD(lParam), HIWORD(lParam));
+        // (Improvement 4: Only rebuild immediately if we aren't dragging the window edges)
+        if (!g_inSizeMove) {
+            RebuildBackBuffer(hWnd, LOWORD(lParam), HIWORD(lParam));
+        }
         return 0;
 
     case WM_COMMAND:
@@ -499,6 +596,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteObject(g_backBmp);
             DeleteDC(g_memDC);
             g_memDC = nullptr;
+        }
+        if (g_spriteDC) {                  // tear down the sprite
+            SelectObject(g_spriteDC, g_oldSpriteBmp);
+            DeleteObject(g_spriteBmp);
+            DeleteDC(g_spriteDC);
+            g_spriteDC = nullptr;
         }
         DeleteObject(g_skyBrush);
         DeleteObject(g_groundBrush);
