@@ -1,5 +1,7 @@
 # WinApiDemo
 
+![WinApiDemo Screenshot](image.png)
+
 WinApiDemo is a self-contained Win32 C++ application demonstrating a WASD-controlled sprite over a randomly generated mountain background, utilizing raw Win32 APIs and GDI for double-buffered rendering. It also features inter-process communication (IPC) for fetching the current time via MS-RPC or optionally via ZeroC Ice across a network.
 
 ## Features
